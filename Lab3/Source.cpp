@@ -84,10 +84,6 @@ public:
 
 	int empty() const { return !size(); }
 
-	int normalize(const uint32_t key_hash) const {
-		return key_hash % capacity_;
-	}
-
 	void clear() {
 		for (auto i = 0; i < capacity_; ++i) {
 			if (table_[i] == nullptr) continue;
@@ -103,12 +99,88 @@ public:
 		}
 		size_ = 0;
 	}
+
+	void insert(const K& key, const V& value) {
+		auto index = normalize(get_hash(key));
+		node<K, V>* prev = nullptr;
+		auto* entry = table_[index];
+
+		while (entry != nullptr && entry->get_key() != key) {
+			prev = entry;
+			entry = entry->get_next();
+		}
+
+		if (entry == nullptr) {
+			entry = new node<K, V>(key, value);
+			if (prev == nullptr) {
+				table_[index] = entry;
+			}
+			else {
+				prev->set_next(entry);
+			}
+		}
+		else {
+			entry->set_value(value);
+		}
+
+		++size_;
+		if (size() > m_amount_) resize_table();
+	}
+	
 	~hash_table() {
 		clear();
 		free(table_);
 		table_ = nullptr;
 	}
+	
 private:
+
+	int normalize(const uint32_t key_hash) const {
+		return key_hash % capacity_;
+	}
+	
+	void resize_table() {
+		capacity_ *= increase_;
+		m_amount_ = capacity_ * load_factor_;
+		auto** new_table = new node<K, V> * [capacity_];
+
+		for (auto i = 0; i < capacity_; ++i) {
+			new_table[i] = nullptr;
+		}
+
+		for (auto i = 0; i < capacity_ / increase_; ++i) {
+			if (table_[i] == nullptr) continue;
+			auto* item = table_[i];
+
+			while (item != nullptr) {
+				auto index = normalize(get_hash(item->get_key()));
+				node<K, V>* prev = nullptr;
+				auto* entry = new_table[index];
+
+				while (entry != nullptr) {
+					prev = entry;
+					entry = entry->get_next();
+				}
+
+				entry = new node<K, V>(item->get_key(), item->get_value());
+				if (prev == nullptr) {
+					new_table[index] = entry;
+				}
+				else {
+					prev->set_next(entry);
+				}
+
+				auto* copy = item;
+				item = item->get_next();
+				table_[i] = item;
+				free(copy);
+			}
+			table_[i] = nullptr;
+		}
+		free(table_);
+		table_ = new_table;
+	}
+	
 	const int d_capacity_ = 6;
 	const double d_load_factor_ = 0.8;
 
