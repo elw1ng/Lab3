@@ -103,7 +103,11 @@ public:
 		}
 		size_ = 0;
 	}
-	
+	~hash_table() {
+		clear();
+		free(table_);
+		table_ = nullptr;
+	}
 private:
 	const int d_capacity_ = 6;
 	const double d_load_factor_ = 0.8;
@@ -114,8 +118,40 @@ private:
 
 	node<K, V>** table_;
 };
+string input() {
+	string sentence;
+	getline(cin, sentence);
+	return sentence;
+}
+
+vector<string> parse(string& sentence) {
+	vector<string> words;
+	auto position = 0;
+	sentence += " ";
+	const string ws = ",.;:!?/\'\"{}[]()";
+	while (sentence.find(' ', position) != string::npos) {
+		const auto current = sentence.find(' ', position);
+		const auto length = current - position;
+		auto word = sentence.substr(position, length);
+		const auto left = word.find_first_not_of(ws);
+		const auto right = word.find_last_not_of(ws);
+		if (left == string::npos) {
+			position = current + 1; continue;
+		}
+		word = word.substr(left, right - left + 1);
+		position = current + 1;
+		words.push_back(word);
+	}
+	sentence.pop_back();
+	return words;
+}
 
 int main()
 {
+	string filename;
+	cout << "Enter path to dictionary ";
+	getline(cin, filename);
+	auto sentence = input();
+	auto words = parse(sentence);
 	return 0;
 }
