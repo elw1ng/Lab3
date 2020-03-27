@@ -1,1 +1,6 @@
-﻿  Lab3.vcxproj -> C:\Users\Дмитрий\Lab3\Lab3\Debug\Lab3.exe
+﻿  Source.cpp
+C:\Users\motor\Lab3\Lab3\Source.cpp(224,27): warning C4244: инициализация: преобразование "double" в "int", возможна потеря данных
+C:\Users\motor\Lab3\Lab3\Source.cpp(48): message : во время компиляции функции-члена класс шаблон "hash_table<std::string,std::string>::hash_table(void)"
+C:\Users\motor\Lab3\Lab3\Source.cpp(261): message : выполняется компиляция ссылки на экземпляр шаблон функции "hash_table<std::string,std::string>::hash_table(void)"
+C:\Users\motor\Lab3\Lab3\Source.cpp(261): message : выполняется компиляция ссылки на экземпляр класс шаблон функции "hash_table<std::string,std::string>"
+  Lab3.vcxproj -> C:\Users\motor\Lab3\Lab3\Debug\Lab3.exe

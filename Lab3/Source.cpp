@@ -100,6 +100,19 @@ public:
 		size_ = 0;
 	}
 
+	V get(const K& key) {
+		auto index = normalize(get_hash(key));
+		auto* entry = table_[index];
+
+		while (entry != nullptr) {
+			if (entry->get_key() == key) {
+				return entry->get_value();
+			}
+			entry = entry->get_next();
+		}
+
+		return "Can not find this word";
+	}
 	void insert(const K& key, const V& value) {
 		auto index = normalize(get_hash(key));
 		node<K, V>* prev = nullptr;
@@ -131,6 +144,28 @@ public:
 		clear();
 		free(table_);
 		table_ = nullptr;
+	}
+	void remove(const K& key) {
+		auto index = normalize(get_hash(key));
+		node<K, V>* prev = nullptr;
+		auto* entry = table_[index];
+
+		while (entry != nullptr && entry->get_key() != key) {
+			prev = entry;
+			entry = entry->get_next();
+		}
+
+		if (entry == nullptr) return;
+
+		if (prev == nullptr) {
+			table_[index] = entry->get_next();
+		}
+		else {
+			prev->set_next(entry->get_next());
+		}
+
+		--size_;
+		free(entry);
 	}
 	
 private:
@@ -223,6 +258,7 @@ int main()
 	string filename;
 	cout << "Enter path to dictionary ";
 	getline(cin, filename);
+	hash_table<string, string> dictionary;
 	auto sentence = input();
 	auto words = parse(sentence);
 	return 0;
