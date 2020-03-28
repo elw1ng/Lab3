@@ -140,11 +140,6 @@ public:
 		if (size() > m_amount_) resize_table();
 	}
 	
-	~hash_table() {
-		clear();
-		free(table_);
-		table_ = nullptr;
-	}
 	void remove(const K& key) {
 		auto index = normalize(get_hash(key));
 		node<K, V>* prev = nullptr;
@@ -166,6 +161,12 @@ public:
 
 		--size_;
 		free(entry);
+	}
+
+	~hash_table() {
+		clear();
+		free(table_);
+		table_ = nullptr;
 	}
 	
 private:
@@ -225,41 +226,81 @@ private:
 
 	node<K, V>** table_;
 };
+
 string input() {
 	string sentence;
 	getline(cin, sentence);
 	return sentence;
 }
 
-vector<string> parse(string& sentence) {
-	vector<string> words;
-	auto position = 0;
-	sentence += " ";
-	const string ws = ",.;:!?/\'\"{}[]()";
-	while (sentence.find(' ', position) != string::npos) {
-		const auto current = sentence.find(' ', position);
-		const auto length = current - position;
-		auto word = sentence.substr(position, length);
-		const auto left = word.find_first_not_of(ws);
-		const auto right = word.find_last_not_of(ws);
-		if (left == string::npos) {
-			position = current + 1; continue;
-		}
-		word = word.substr(left, right - left + 1);
-		position = current + 1;
-		words.push_back(word);
+class words_meaning {
+public:
+
+	words_meaning() {
+		string filename, sentence;
+		cout << "Enter path to dictionary ";
+		getline(cin, filename);
+		load_dictionary(filename);
+		cout << "Type sentence: ";
+		getline(cin, sentence);
+		parse(sentence);
 	}
-	sentence.pop_back();
-	return words;
-}
+
+	void output() {
+		for (auto& word : words_) {
+			transform(begin(word), end(word),
+				begin(word), toupper);
+			cout << dictionary_.get(word) << "\n\n";
+		}
+	}
+	
+private:
+	
+	void parse(string& sentence) {
+		auto position = 0; sentence += " ";
+		const string ws = ",.;:!?/\'\"{}[]()";
+		while (sentence.find(' ', position) != string::npos) {
+			const auto current = sentence.find(' ', position);
+			const auto length = current - position;
+			auto word = sentence.substr(position, length);
+			const auto left = word.find_first_not_of(ws);
+			const auto right = word.find_last_not_of(ws);
+			if (left == string::npos) {
+				position = current + 1; continue;
+			}
+			word = word.substr(left, right - left + 1);
+			position = current + 1;
+			words_.push_back(word);
+		}
+		sentence.pop_back();
+	}
+
+	void load_dictionary(const string& filename) {
+		ifstream in(filename);
+		if (in.is_open()) {
+			cout << "Starting loading dictionary" << endl;
+			while (!in.eof()) {
+				string key, value;
+				getline(in >> ws, key, ';');
+				getline(in >> ws, value);
+				dictionary_.insert(key, value);
+			}
+			in.close();
+			cout << "Dictionary downloaded" << endl;
+		}
+		else {
+			cerr << "Can not open file " + filename;
+			exit(1);
+		}
+	}
+	
+	hash_table<string, string> dictionary_;
+	vector<string> words_;
+};
 
 int main()
 {
-	string filename;
-	cout << "Enter path to dictionary ";
-	getline(cin, filename);
-	hash_table<string, string> dictionary;
-	auto sentence = input();
-	auto words = parse(sentence);
+	words_meaning meaning;
+	meaning.output();
 	return 0;
 }
